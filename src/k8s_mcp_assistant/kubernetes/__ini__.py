@@ -1,1 +1,0 @@
-# Kubernetes helper package

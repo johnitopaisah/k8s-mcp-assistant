@@ -158,5 +158,105 @@ class EventList(BaseModel):
     events: list[EventSummary]
 
 
-# Allow forward references (PodDetail references EventSummary)
+# ── Cluster-wide models ────────────────────────────────────────────────────────
+
+class NamespaceSummary(BaseModel):
+    name: str
+    status: Optional[str] = None
+    labels: Optional[dict[str, str]] = None
+    annotations: Optional[dict[str, str]] = None
+    created_at: Optional[str] = None
+
+
+class NamespaceList(BaseModel):
+    namespace_count: int
+    namespaces: list[NamespaceSummary]
+
+
+class NodeTaint(BaseModel):
+    key: str
+    effect: str
+    value: Optional[str] = None
+
+
+class NodeSummary(BaseModel):
+    name: str
+    roles: list[str]
+    ready: str
+    kubelet_version: Optional[str] = None
+    os_image: Optional[str] = None
+    container_runtime: Optional[str] = None
+    capacity: dict[str, str] = {}
+    allocatable: dict[str, str] = {}
+    taints: list[NodeTaint] = []
+    unschedulable: bool = False
+    created_at: Optional[str] = None
+
+
+class NodeList(BaseModel):
+    node_count: int
+    nodes: list[NodeSummary]
+
+
+class NodeCondition(BaseModel):
+    type: str
+    status: str
+    reason: Optional[str] = None
+    message: Optional[str] = None
+    last_heartbeat_time: Optional[str] = None
+    last_transition_time: Optional[str] = None
+
+
+class NodeSystemInfo(BaseModel):
+    os_image: Optional[str] = None
+    kernel_version: Optional[str] = None
+    os: Optional[str] = None
+    architecture: Optional[str] = None
+    container_runtime: Optional[str] = None
+    kubelet_version: Optional[str] = None
+    kube_proxy_version: Optional[str] = None
+
+
+class NodeDetail(BaseModel):
+    name: str
+    roles: list[str]
+    labels: Optional[dict[str, str]] = None
+    annotations: Optional[dict[str, str]] = None
+    created_at: Optional[str] = None
+    unschedulable: bool = False
+    taints: list[NodeTaint] = []
+    conditions: list[NodeCondition] = []
+    addresses: list[dict[str, str]] = []
+    capacity: dict[str, str] = {}
+    allocatable: dict[str, str] = {}
+    system_info: NodeSystemInfo = NodeSystemInfo()
+    events: list[EventSummary] = []
+
+
+class ClusterInfo(BaseModel):
+    git_version: Optional[str] = None
+    major: Optional[str] = None
+    minor: Optional[str] = None
+    platform: Optional[str] = None
+    go_version: Optional[str] = None
+    build_date: Optional[str] = None
+    compiler: Optional[str] = None
+
+
+class ApiResource(BaseModel):
+    name: str
+    kind: str
+    namespaced: bool
+    group: str
+    version: str
+    verbs: list[str] = []
+    short_names: list[str] = []
+
+
+class ApiResourceList(BaseModel):
+    resource_count: int
+    resources: list[ApiResource]
+
+
+# Allow forward references
 PodDetail.model_rebuild()

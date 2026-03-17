@@ -24,7 +24,6 @@ def load_kube_configuration(settings: Settings) -> None:
                 context=settings.kube_context,
             )
             return
-
         try:
             config.load_kube_config(config_file=settings.kubeconfig_path or None)
             return
@@ -48,6 +47,11 @@ def _ensure_config(settings: Settings) -> None:
         _config_loaded = True
 
 
+def get_api_client(settings: Settings) -> client.ApiClient:
+    _ensure_config(settings)
+    return client.ApiClient()
+
+
 def get_core_v1_api(settings: Settings) -> client.CoreV1Api:
     _ensure_config(settings)
     return client.CoreV1Api()
@@ -56,3 +60,13 @@ def get_core_v1_api(settings: Settings) -> client.CoreV1Api:
 def get_apps_v1_api(settings: Settings) -> client.AppsV1Api:
     _ensure_config(settings)
     return client.AppsV1Api()
+
+
+def get_batch_v1_api(settings: Settings) -> client.BatchV1Api:
+    _ensure_config(settings)
+    return client.BatchV1Api()
+
+
+def get_version_api(settings: Settings) -> client.VersionApi:
+    _ensure_config(settings)
+    return client.VersionApi()
