@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "k8s-cmp-assistant"
+name = "k8s-mcp-assistant"
 version = "0.1.0"
-description = "A read-only Kubernetes CMP server for pod inspection and logs"
+description = "A read-only Kubernetes MCP server for cluster inspection and diagnostics"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -21,11 +21,13 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3.2",
+  "pytest-mock>=3.14.0",
+  "mypy>=1.11.0",
   "black>=24.8.0",
   "ruff>=0.6.4"
 ]
 
-[project-script]
+[project.scripts]
 k8s-mcp-assistant = "k8s_mcp_assistant.server:main"
 
 [tool.setuptools]
@@ -33,6 +35,15 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
 
 [tool.black]
 line-length = 100

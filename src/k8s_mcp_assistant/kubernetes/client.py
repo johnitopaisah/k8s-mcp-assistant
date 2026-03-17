@@ -5,64 +5,17 @@ from kubernetes.config.config_exception import ConfigException
 
 from k8s_mcp_assistant.config import Settings
 
+
 class KubernetesClientError(Exception):
-    """Raised when Kubernetes client initialization fails."""
+    """Raised when Kubernetes client initialization or configuration fails."""
 
-class KubernetesClient:
-    def __init__(self, settings: Settings):
-        self.settings = settings
-        self.api_client = self._initialize_client()
-
-    def _initialize_client(self) -> client.ApiClient:
-        try:
-            if self.settings.kubeconfig:
-                config.load_kube_config_from_dict(
-                    {
-                        "apiVersion": "v1",
-                        "clusters": [
-                            {
-                                "cluster": {
-                                    "server": self.settings.kube_api_server,
-                                    "certificate-authority-data": self.settings.kube_cluster,
-                                },
-                                "name": "cluster",
-                            }
-                        ],
-                        "contexts": [
-                            {
-                                "context": {
-                                    "cluster": "cluster",
-                                    "user": "user",
-                                },
-                                "name": "context",
-                            }
-                        ],
-                        "current-context": "context",
-                        "kind": "Config",
-                        "users": [
-                            {
-                                "name": "user",
-                                "user": {
-                                    "token": self.settings.kube_user,
-                                },
-                            }
-                        ],
-                    }
-                )
-            elif self.settings.kubeconfig_path:
-                config.load_kube_config(config_file=self.settings.kubeconfig_path)
-            else:
-                config.load_kube_config()
-            return client.ApiClient()
-        except ConfigException as e:
-            raise KubernetesClientError(f"Failed to initialize Kubernetes client: {e}")
 
 def load_kube_configuration(settings: Settings) -> None:
     """
-    Load Kubernetes configuration with the following preference:
-    1. Explicit kubeconfig path/context from settings
-    2. default kubeconfig file (e.g., ~/.kube/config)
-    3. in-cluster configuration (if running inside a Kubernetes cluster)
+    Load Kubernetes configuration once with the following preference order:
+    1. Explicit kubeconfig content / context from settings
+    2. Default kubeconfig file (~/.kube/config)
+    3. In-cluster configuration (when running inside a Kubernetes pod)
     """
     try:
         if settings.kubeconfig or settings.kube_context:
@@ -71,22 +24,35 @@ def load_kube_configuration(settings: Settings) -> None:
                 context=settings.kube_context,
             )
             return
-        
+
         try:
-            config.load_kube_config()
+            config.load_kube_config(config_file=settings.kubeconfig_path or None)
             return
         except ConfigException:
             config.load_incluster_config()
     except Exception as exc:
         raise KubernetesClientError(
-            "Failed to load Kubernetes configuration: "
+            "Failed to load Kubernetes configuration. "
             "Check your kubeconfig, context, and in-cluster configuration settings."
         ) from exc
 
+
+# Module-level cache: configuration is loaded once per process.
+_config_loaded: bool = False
+
+
+def _ensure_config(settings: Settings) -> None:
+    global _config_loaded
+    if not _config_loaded:
+        load_kube_configuration(settings)
+        _config_loaded = True
+
+
 def get_core_v1_api(settings: Settings) -> client.CoreV1Api:
-    load_kube_configuration(settings)
+    _ensure_config(settings)
     return client.CoreV1Api()
 
+
 def get_apps_v1_api(settings: Settings) -> client.AppsV1Api:
-    load_kube_configuration(settings)
+    _ensure_config(settings)
     return client.AppsV1Api()
