@@ -5,7 +5,7 @@ from typing import Optional
 from kubernetes.client import CoreV1Api
 from kubernetes.client.exceptions import ApiException
 
-from k8s_cmp_assistant.config import Settings
+from k8s_mcp_assistant.config import Settings
 
 class NamespaceNotAllowedError(Exception):
     """Raised when a namespace is not allowed by the settings."""

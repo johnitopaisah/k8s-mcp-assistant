@@ -3,7 +3,7 @@ from __future__ import annotations
 from kubernetes import client, config
 from kubernetes.config.config_exception import ConfigException
 
-from k8s_cmp_assistant.config import Settings
+from k8s_mcp_assistant.config import Settings
 
 class KubernetesClientError(Exception):
     """Raised when Kubernetes client initialization fails."""
